@@ -76,15 +76,43 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successor_game_state =\
             current_game_state.generate_pacman_successor(action)
-        # new_pos = successor_game_state.get_pacman_position()
-        # new_food = successor_game_state.get_food()
-        # new_ghost_states = successor_game_state.get_ghost_states()
-        # new_scared_times = [ghost_state.scared_timer for ghost_state in
-        #                     new_ghost_states]
-        # new_capsules = successor_game_state.get_capsules()
+
+        new_pos = successor_game_state.get_pacman_position()
+
+        new_food = successor_game_state.get_food()
+
+        new_ghost_states = successor_game_state.get_ghost_states()
+
+        new_capsules = successor_game_state.get_capsules()
 
         "*** YOUR CODE HERE ***"
-        return successor_game_state.get_score()
+
+        # Its the goal just do it!!!
+        if successor_game_state.is_win():
+            return float('inf')
+
+        # Base utility
+        utility = successor_game_state.get_score()
+
+        # Check how close a gost is to you and move accordingly
+        for ghost_state in new_ghost_states:
+            if ghost_state.scared_timer == 0:
+                distance_to_ghost = util.manhattan_distance(ghost_state.get_position(), new_pos)
+                if distance_to_ghost <= 10:
+                    utility -= 10 - distance_to_ghost
+                elif distance_to_ghost <= 2:
+                    utility -= 100
+
+        # If the next game state has you eating a food try and go there
+        if current_game_state.get_num_food() > successor_game_state.get_num_food():
+            utility += 25
+
+        # Try and go closer to nearest food
+        utility -= min([util.manhattan_distance(new_pos, pos) for pos in
+                        [(i, j) for i, lst in enumerate(new_food)
+                            for j, val in enumerate(lst) if val]])
+
+        return utility
 
 
 def score_evaluation_function(current_game_state):
