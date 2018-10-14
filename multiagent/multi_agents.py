@@ -170,8 +170,49 @@ class MinimaxAgent(MultiAgentSearchAgent):
             game_state.get_num_agents():
                 Returns the total number of agents in the game.
         """
-        # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        def min_value(current_game_state, ghost, current_depth):
+            current_value = float('inf')
+
+            for current_action in current_game_state.get_legal_actions(ghost):
+                temp_state = current_game_state.generate_successor(ghost, current_action)
+                temp_value, current_action = minimax_decision(temp_state, ghost + 1, current_depth)
+
+                if temp_value < current_value:
+                    current_value = temp_value
+
+            return current_value
+
+        def max_value(current_game_state, current_depth):
+            current_value = float('-inf')
+            best_action = 'Stop'
+
+            for current_action in current_game_state.get_legal_actions(0):
+                temp_state = current_game_state.generate_successor(0, current_action)
+                temp_value, temp_action = minimax_decision(temp_state, 1, current_depth)
+                if temp_value > current_value:
+                    current_value = temp_value
+                    best_action = current_action
+
+            return current_value, best_action
+
+        def minimax_decision(current_game_state, agent, current_depth):
+
+            if agent >= current_game_state.get_num_agents():
+                agent = 0
+                current_depth += 1
+
+            if current_game_state.is_win() or current_game_state.is_lose() or self.depth < current_depth:
+                return self.evaluation_function(current_game_state), ''
+
+            if 0 == agent:
+                return max_value(current_game_state, current_depth)
+            else:
+                return min_value(current_game_state, agent, current_depth), ''
+
+        depth = 1
+        first_agent = 0
+        value, action = minimax_decision(game_state, first_agent, depth)
+        return action
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
