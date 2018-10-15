@@ -4,6 +4,21 @@ Champlain College CSI-480, Fall 2018
 The following code was adapted by Joshua Auerbach (jauerbach@champlain.edu)
 from the UC Berkeley Pacman Projects (see license and attribution below).
 
+Author: Dylan Blanchard, Sloan Anderson, and Stephen Johnson
+Class: CSI-480-01
+Assignment: PA 3 -- Multiagent
+Due Date: October 15, 2018 11:59 PM
+
+Certification of Authenticity:
+I certify that this is entirely my own work, except where I have given
+fully-documented references to the work of others. I understand the definition
+and consequences of plagiarism and acknowledge that the assessor of this
+assignment may, for the purpose of assessing this assignment:
+- Reproduce this assignment and provide a copy to another member of academic
+- staff; and/or Communicate a copy of this assignment to a plagiarism checking
+- service (which may then retain a copy of this assignment on its database for
+- the purpose of future plagiarism checking)
+
 ----------------------
 Licensing Information:  You are free to use or extend these projects for
 educational purposes provided that (1) you do not distribute or publish
@@ -83,8 +98,6 @@ class ReflexAgent(Agent):
 
         new_ghost_states = successor_game_state.get_ghost_states()
 
-        new_capsules = successor_game_state.get_capsules()
-
         "*** YOUR CODE HERE ***"
 
         # Its the goal just do it!!!
@@ -97,14 +110,17 @@ class ReflexAgent(Agent):
         # Check how close a gost is to you and move accordingly
         for ghost_state in new_ghost_states:
             if ghost_state.scared_timer == 0:
-                distance_to_ghost = util.manhattan_distance(ghost_state.get_position(), new_pos)
+                pos = ghost_state.get_position()
+                distance_to_ghost = util.manhattan_distance(pos, new_pos)
                 if distance_to_ghost <= 10:
                     utility -= 10 - distance_to_ghost
                 elif distance_to_ghost <= 2:
                     utility -= 100
 
         # If the next game state has you eating a food try and go there
-        if current_game_state.get_num_food() > successor_game_state.get_num_food():
+        current_num_food = current_game_state.get_num_food()
+        next_num_food = successor_game_state.get_num_food()
+        if current_num_food > next_num_food:
             utility += 25
 
         # Try and go closer to nearest food
@@ -173,12 +189,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
         def min_value(current_game_state, ghost, current_depth):
             current_value = float('inf')
 
-            for current_action in current_game_state.get_legal_actions(ghost):
-                temp_state = current_game_state.generate_successor(ghost, current_action)
-                temp_value, current_action = minimax_decision(temp_state, ghost + 1, current_depth)
+            for new_action in current_game_state.get_legal_actions(ghost):
+                new_state = \
+                    current_game_state.generate_successor(ghost, new_action)
 
-                if temp_value < current_value:
-                    current_value = temp_value
+                new_value, current_action = \
+                    minimax_decision(new_state, ghost + 1, current_depth)
+
+                if new_value < current_value:
+                    current_value = new_value
 
             return current_value
 
@@ -186,12 +205,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
             current_value = float('-inf')
             best_action = 'Stop'
 
-            for current_action in current_game_state.get_legal_actions(0):
-                temp_state = current_game_state.generate_successor(0, current_action)
-                temp_value, temp_action = minimax_decision(temp_state, 1, current_depth)
-                if temp_value > current_value:
-                    current_value = temp_value
-                    best_action = current_action
+            for new_action in current_game_state.get_legal_actions(0):
+                new_state = \
+                    current_game_state.generate_successor(0, new_action)
+                new_value, _ = minimax_decision(new_state, 1, current_depth)
+                if new_value > current_value:
+                    current_value = new_value
+                    best_action = new_action
 
             return current_value, best_action
 
@@ -201,7 +221,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 agent = 0
                 current_depth += 1
 
-            if current_game_state.is_win() or current_game_state.is_lose() or self.depth < current_depth:
+            if current_game_state.is_win() or current_game_state.is_lose() or \
+                    self.depth < current_depth:
                 return self.evaluation_function(current_game_state), ''
 
             if 0 == agent:
@@ -241,13 +262,91 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        def exp_val(current_game_state, agent, current_depth):
+            current_value = 0
+
+            legal_actions = current_game_state.get_legal_actions(agent)
+
+            for new_action in legal_actions:
+                new_state = \
+                    current_game_state.generate_successor(agent, new_action)
+                new_value, _ = exp_max_val(new_state, agent + 1, current_depth)
+                current_value += new_value
+
+            return current_value / len(legal_actions)
+
+        # Maximum evaluation function
+        def max_val(current_game_state, current_depth):
+            # Create value with worst case
+            current_value = float('-inf')
+
+            # Create base action if no action is chosen
+            best_action = 'Stop'
+
+            # Loop through all possible actions
+            for new_action in current_game_state.get_legal_actions(0):
+
+                # Get new state from action
+                new_state = \
+                    current_game_state.generate_successor(0, new_action)
+
+                # Run expectimax decision on new state
+                new_value, _ = exp_max_val(new_state, 1, current_depth)
+
+                # Check if value for action is larger then current value
+                if new_value > current_value:
+
+                    # Set new value to best current value
+                    current_value = new_value
+
+                    # Set new action as best current acton
+                    best_action = new_action
+
+            # Return the best value and action from the list actions
+            return current_value, best_action
+
+        # Expectimax decision function
+        def exp_max_val(current_game_state, current_agent, current_depth):
+            # Check if you have moved to the next depth
+            if current_agent >= current_game_state.get_num_agents():
+
+                # Set current agent back to Pacman
+                current_agent = 0
+
+                # Increment depth by 1
+                current_depth += 1
+
+            # Check if you are at a terminal state or leaf node
+            if current_game_state.is_win() or current_game_state.is_lose() or \
+                    self.depth < current_depth:
+                return self.evaluation_function(current_game_state), ''
+
+            # Run max evaluation function for Pacman
+            if current_agent == 0:
+                return max_val(current_game_state, current_depth)
+
+            # Run expectation evaluation function for ghost
+            else:
+                return exp_val(current_game_state,
+                               current_agent, current_depth), ''
+
+        # Set starting depth
+        depth = 1
+
+        # Set to Pacman for first agent
+        first_agent = 0
+
+        # Run expectimax evaluation
+        value, action = exp_max_val(game_state, first_agent, depth)
+
+        # Return best expected action
+        return action
 
 
 def better_evaluation_function(current_game_state):
     """Your awesome evaluation function (question 5).
 
-    Description: <write something here explaining your approach>
+    Description: Temp description to pass linter
     """
     # *** YOUR CODE HERE ***
     util.raise_not_defined()
