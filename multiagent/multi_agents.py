@@ -409,7 +409,10 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 def better_evaluation_function(current_game_state):
     """Your awesome evaluation function (question 5).
 
-    Description: Temp description to pass linter
+    Description: This function works off the simpler evaluation function above
+        its primary deference is that it works off of the current game state
+        and also evaluations power pellets and some small changes to the math
+        when evaluating ghost and food.
     """
     # Set base utility to current score
     utility = current_game_state.get_score()
@@ -430,7 +433,7 @@ def better_evaluation_function(current_game_state):
                   for j, val in
                   enumerate(lst)
                   if val]]
-    utility -= min(food_dist)
+    utility -= min(food_dist) / len(food_dist)
 
     # Get distance to each ghost that is not scared
     dist = [util.manhattan_distance(current_position, ghost.get_position())
@@ -440,9 +443,9 @@ def better_evaluation_function(current_game_state):
     # Try and stay away from all ghosts
     for d in dist:
         if d < 5:
-            utility -= (5 - d)
+            utility -= (10 - d)
         if d <= 2:
-            utility -= 100
+            utility -= 300
 
     # Try and go closer to power capsules
     dist_capsules = [util.manhattan_distance(current_position, capsule)
