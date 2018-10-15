@@ -246,7 +246,70 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         evaluate "leaf" nodes using self.evaluation_function.
         """
         # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        def max_value(current_game_state, current_depth, alpha, beta):
+            current_value = float('-inf')
+            best_action = 'Stop'
+            for new_action in current_game_state.get_legal_actions(0):
+                if current_value > beta:
+                    return current_value, best_action
+
+                new_state = \
+                    current_game_state.generate_successor(0, new_action)
+                new_value, _ = \
+                    minimax_decision(new_state, 1, current_depth, alpha, beta)
+
+                if new_value > current_value:
+                    current_value = new_value
+                    best_action = new_action
+                    if current_value > alpha:
+                        alpha = current_value
+
+            return current_value, best_action
+
+        def min_value(current_game_state, ghost, current_depth, alpha, beta):
+            current_value = float('inf')
+
+            for new_action in current_game_state.get_legal_actions(ghost):
+                if current_value < alpha:
+                    return current_value
+                new_state = \
+                    current_game_state.generate_successor(ghost, new_action)
+
+                new_value, current_action = minimax_decision(
+                        new_state, ghost + 1, current_depth, alpha, beta)
+
+                if new_value < current_value:
+                    current_value = new_value
+                    if new_value < beta:
+                        beta = current_value
+
+            return current_value
+
+        def minimax_decision(
+                current_game_state, agent, current_depth, alpha, beta):
+
+            if agent >= current_game_state.get_num_agents():
+                agent = 0
+                current_depth += 1
+
+            if current_game_state.is_win() or current_game_state.is_lose() or \
+                    self.depth < current_depth:
+                return self.evaluation_function(current_game_state), ''
+
+            if 0 == agent:
+                return max_value(
+                    current_game_state, current_depth, alpha, beta)
+            else:
+                return min_value(
+                    current_game_state, agent, current_depth, alpha, beta), ''
+
+        depth = 1
+        first_agent = 0
+        alpha = float('-inf')
+        beta = float('inf')
+        value, action = \
+            minimax_decision(game_state, first_agent, depth, alpha, beta)
+        return action
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
