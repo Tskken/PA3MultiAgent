@@ -275,7 +275,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 new_state = \
                     current_game_state.generate_successor(ghost, new_action)
 
-                new_value, current_action = minimax_decision(
+                new_value, _ = minimax_decision(
                         new_state, ghost + 1, current_depth, alpha, beta)
 
                 if new_value < current_value:
@@ -411,8 +411,47 @@ def better_evaluation_function(current_game_state):
 
     Description: Temp description to pass linter
     """
-    # *** YOUR CODE HERE ***
-    util.raise_not_defined()
+    # Set base utility to current score
+    utility = current_game_state.get_score()
+
+    # Return max utility if you will win
+    if current_game_state.is_win():
+        return float('inf')
+
+    # Get pacmans current position
+    current_position = current_game_state.get_pacman_position()
+
+    # Try and go closer to nearest food
+    food_dist = [util.manhattan_distance(current_position, pos)
+                 for pos in
+                 [(i, j)
+                  for i, lst in
+                  enumerate(current_game_state.get_food())
+                  for j, val in
+                  enumerate(lst)
+                  if val]]
+    utility -= min(food_dist)
+
+    # Get distance to each ghost that is not scared
+    dist = [util.manhattan_distance(current_position, ghost.get_position())
+            for ghost in current_game_state.get_ghost_states()
+            if ghost.scared_timer == 0]
+
+    # Try and stay away from all ghosts
+    for d in dist:
+        if d < 5:
+            utility -= (5 - d)
+        if d <= 2:
+            utility -= 100
+
+    # Try and go closer to power capsules
+    dist_capsules = [util.manhattan_distance(current_position, capsule)
+                     for capsule in current_game_state.get_capsules()]
+    for c_dist in dist_capsules:
+        utility -= c_dist
+
+    # Return utility
+    return utility
 
 
 # Abbreviation
