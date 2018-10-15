@@ -186,7 +186,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
             game_state.get_num_agents():
                 Returns the total number of agents in the game.
         """
-        def min_value(current_game_state, ghost, current_depth):
+                def min_value(current_game_state, ghost, current_depth):
+            """Calculate the minimum value for the ghost agent.
+
+            The Best choice for the ghost and returns that value.
+            """
             current_value = float('inf')
 
             for new_action in current_game_state.get_legal_actions(ghost):
@@ -202,8 +206,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return current_value
 
         def max_value(current_game_state, current_depth):
+            """Calculate the maximum value for the pacman agent.
+
+            The Best choice for pacman and returns that action
+            """
             current_value = float('-inf')
-            best_action = 'Stop'
+            best_action = None
 
             for new_action in current_game_state.get_legal_actions(0):
                 new_state = \
@@ -216,7 +224,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return current_value, best_action
 
         def minimax_decision(current_game_state, agent, current_depth):
+            """Use to determine the depth and win/lose.
 
+            Also, what function gets called.
+            """
             if agent >= current_game_state.get_num_agents():
                 agent = 0
                 current_depth += 1
