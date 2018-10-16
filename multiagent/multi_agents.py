@@ -455,7 +455,7 @@ def better_evaluation_function(current_game_state):
     for d in dist:
         if d < 5:
             utility -= (10 - d)
-        if d <= 2:
+        if d <= 1:
             utility -= 300
 
     # Try and go closer to power capsules
