@@ -186,7 +186,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             game_state.get_num_agents():
                 Returns the total number of agents in the game.
         """
-                def min_value(current_game_state, ghost, current_depth):
+        def min_value(current_game_state, ghost, current_depth):
             """Calculate the minimum value for the ghost agent.
 
             The Best choice for the ghost and returns that value.
