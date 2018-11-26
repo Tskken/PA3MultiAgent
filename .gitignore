@@ -4,3 +4,4 @@ multiagent/__pycache__/game.cpython-37.pyc
 multiagent/__pycache__/util.cpython-37.pyc
 *.pyc
 *.pyc
+*.xml
